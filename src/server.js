@@ -12,16 +12,15 @@ const pool = require('./config/database');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Dynamic CORS configuration
+// ✅ Define allowed origins
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://linklite-frontend.onrender.com'
+];
+
+// ✅ CORS middleware
 app.use(cors({
   origin: function (origin, callback) {
-    const allowedOrigins = [
-      process.env.FRONTEND_URL,
-      'http://localhost:3000',
-      'http://127.0.0.1:3000'
-    ];
-
-    // Allow requests with no origin (like mobile apps or curl)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
