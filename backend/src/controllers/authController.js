@@ -9,6 +9,8 @@ const generateToken = (userId) => {
 
 // ✅ REGISTER CONTROLLER
 exports.registerUser = async (req, res) => {
+  console.log("✅ /register endpoint hit", req.body);
+
   const { name, email, password, bio, avatar } = req.body;
 
   try {
