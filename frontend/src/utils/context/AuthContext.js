@@ -4,7 +4,7 @@ import axios from 'axios';
 
 const AuthContext = createContext();
 
-const API = 'http://localhost:3001/api/auth';
+const API = 'https://linklite-odit.onrender.com/api/auth';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
