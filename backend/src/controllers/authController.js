@@ -1,77 +1,80 @@
+// src/controllers/authController.js
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
 const pool = require('../config/database');
 
-// Function to generate JWT token
-const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '7d' });
-};
-
-// ✅ REGISTER CONTROLLER
-exports.registerUser = async (req, res) => {
-  console.log("✅ /register endpoint hit", req.body);
-
-  const { name, email, password, bio, avatar } = req.body;
-
+exports.register = async (req, res) => {
   try {
-    // Check if user already exists
-    const existingUser = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
-    if (existingUser.rows.length > 0) {
-      return res.status(409).json({ error: 'Email is already registered' });
+    const { name, email, password } = req.body;
+
+    // Validation
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'All fields are required' });
     }
 
+    // Check if email already exists
+    const existingUser = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (existingUser.rows.length > 0) {
+      return res.status(409).json({ error: 'Email already registered' });
+    }
+
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate default avatar if not provided
-    const avatarUrl = avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
-
-    const result = await pool.query(
-      'INSERT INTO users (name, email, password_hash, bio, avatar) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, bio, avatar',
-      [name, email, hashedPassword, bio, avatarUrl]
+    // Insert user into DB
+    await pool.query(
+      `INSERT INTO users (id, name, email, password_hash)
+       VALUES (uuid_generate_v4(), $1, $2, $3)`,
+      [name, email, hashedPassword]
     );
 
-    const user = result.rows[0];
-    const token = generateToken(user.id);
-
-    res.status(201).json({ token, user });
-  } catch (error) {
-    console.error('❌ Register error:', error.message, error.stack);
-    res.status(500).json({ error: `User registration failed: ${error.message}` });
+    return res.status(201).json({ message: 'User registered successfully' });
+  } catch (err) {
+    console.error('❌ Registration Error:', err); // Full error for debugging
+    return res.status(500).json({ error: 'Registration failed' });
   }
 };
 
-// ✅ LOGIN CONTROLLER
-exports.loginUser = async (req, res) => {
-  const { email, password } = req.body;
 
+exports.login = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const { email, password } = req.body;
 
-    if (result.rows.length === 0) {
+    // Basic validation
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    // ✅ Correct query with correct password field
+    const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+
+    if (user.rows.length === 0) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const user = result.rows[0];
-    const validPassword = await bcrypt.compare(password, user.password_hash);
+    const userData = user.rows[0];
 
+    // ✅ Password field is 'password_hash' in your DB schema
+    const validPassword = await bcrypt.compare(password, userData.password_hash);
     if (!validPassword) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const token = generateToken(user.id);
+    // Generate JWT
+    const token = jwt.sign({ id: userData.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.status(200).json({
       token,
       user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        bio: user.bio,
-        avatar: user.avatar
-      }
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        avatar: userData.avatar,
+        bio: userData.bio,
+      },
     });
-  } catch (error) {
-    console.error('❌ Login error:', error.message, error.stack);
-    res.status(500).json({ error: `Login failed: ${error.message}` });
+  } catch (err) {
+    console.error('❌ Login Error:', err.message);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };

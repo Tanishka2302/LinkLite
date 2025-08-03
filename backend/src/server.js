@@ -1,27 +1,25 @@
+// backend/src/server.js
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const dotenv = require('dotenv');
 const morgan = require('morgan');
 require('dotenv').config();
-const authRoutes = require('./routes/authRoutes');
-app.use('/api/auth', authRoutes);
-
 
 const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
 const userRoutes = require('./routes/userRoutes');
-const pool = require('./config/database'); // Make sure DB connection works
+const pool = require('./config/database'); // PostgreSQL pool
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ✅ Allowed frontend origins
+// ✅ Allow frontend origin
 const allowedOrigins = [
   'https://linklite-frontend.onrender.com',
   'http://localhost:3000'
 ];
 
-// ✅ Correct CORS setup (only once)
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -30,18 +28,18 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// ✅ Security and logging middleware
+// ✅ Middleware
 app.use(helmet());
-app.use(morgan('combined'));
+app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ API routes
+// ✅ Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
@@ -53,8 +51,8 @@ app.get('/api/health', (req, res) => {
 
 // ✅ Error handler
 app.use((err, req, res, next) => {
-  console.error('Error:', err.stack || err.message);
-  res.status(500).json({ error: err.message || 'Something went wrong!' });
+  console.error('🔥 Server error:', err.stack || err.message);
+  res.status(500).json({ error: err.message || 'Internal server error' });
 });
 
 // ✅ Fallback 404
