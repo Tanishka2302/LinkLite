@@ -1,7 +1,8 @@
 {
   "name": "frontend",
  
-  "homepage": "https://github.com/Tanishka2302/frontend.git",
+ 
+  "homepage": ".",
 
   "version": "0.1.0",
   "private": true,

@@ -5,6 +5,7 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
+     "start": "node backend/src/server.js",
     "dev": "nodemon src/server.js",
     "setup": "node src/config/setup.js",
     "migrate": "knex migrate:latest"
