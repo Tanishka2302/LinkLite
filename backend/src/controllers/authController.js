@@ -7,8 +7,8 @@ const generateToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '7d' });
 };
 
-// REGISTER CONTROLLER
-exports.register = async (req, res) => {
+// ✅ REGISTER CONTROLLER
+exports.registerUser = async (req, res) => {
   const { name, email, password, bio, avatar } = req.body;
 
   try {
@@ -38,8 +38,8 @@ exports.register = async (req, res) => {
   }
 };
 
-// LOGIN CONTROLLER
-exports.login = async (req, res) => {
+// ✅ LOGIN CONTROLLER
+exports.loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
