@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/Tanishka2302/frontend.git/static/css/main.e3442932.css",
+    "main.js": "/Tanishka2302/frontend.git/static/js/main.77d17391.js",
+    "static/js/453.670e15c7.chunk.js": "/Tanishka2302/frontend.git/static/js/453.670e15c7.chunk.js",
+    "index.html": "/Tanishka2302/frontend.git/index.html",
+    "main.e3442932.css.map": "/Tanishka2302/frontend.git/static/css/main.e3442932.css.map",
+    "main.77d17391.js.map": "/Tanishka2302/frontend.git/static/js/main.77d17391.js.map",
+    "453.670e15c7.chunk.js.map": "/Tanishka2302/frontend.git/static/js/453.670e15c7.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e3442932.css",
+    "static/js/main.77d17391.js"
+  ]
+}
