@@ -3,6 +3,9 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 require('dotenv').config();
+const authRoutes = require('./routes/authRoutes');
+app.use('/api/auth', authRoutes);
+
 
 const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
