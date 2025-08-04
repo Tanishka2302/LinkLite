@@ -22,10 +22,12 @@ exports.registerUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const result = await pool.query(
-      `INSERT INTO users (name, email, password, bio, avatar)
-       VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, bio, avatar`,
-      [name, email, hashedPassword, bio, avatar]
-    );
+  `INSERT INTO users (name, email, password, bio, avatar)
+   VALUES ($1, $2, $3, $4, $5)
+   RETURNING id, name, email, bio, avatar`,
+  [name, email, hashedPassword, bio, avatar]
+);
+
 
     const user = result.rows[0];
     const token = generateToken(user);
