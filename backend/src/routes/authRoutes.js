@@ -1,9 +1,13 @@
-// src/routes/authRoutes.js
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const authController = require('../controllers/authController'); // ✅ Make sure this path is correct
 
-router.post('/register', authController.register); // ✅ Make sure `register` is defined
-router.post('/login', authController.login);       // ✅ Make sure `login` is defined
+// ✅ Proper import from the controller
+const { registerUser, login } = require("../controllers/authController");
+
+// ✅ Confirm these functions are not undefined
+console.log("registerUser is:", typeof registerUser); // should be 'function'
+
+router.post("/register", registerUser);
+router.post("/login", login);
 
 module.exports = router;

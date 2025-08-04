@@ -1,11 +1,10 @@
-// src/context/AuthContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext();
 
-const API = 'https://linklite-odit.onrender.com/api/auth';
-
+// Use the backend API URL with `/api` already included
+const API = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
@@ -17,19 +16,23 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState(null);
 
-  // Save to localStorage on change
+  // Persist user and token
   useEffect(() => {
     if (user) localStorage.setItem('user', JSON.stringify(user));
     if (token) localStorage.setItem('token', token);
   }, [user, token]);
 
+  // REGISTER
   const register = async (name, email, password, bio, avatar = '') => {
     setLoading(true);
     setAuthError(null);
-    try {
-      const avatarUrl = avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
 
-      const res = await axios.post(`${API}/register`, {
+    try {
+      const avatarUrl =
+  avatar ||
+  `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3b82f6&color=fff&rounded=true&size=128`;
+
+      const res = await axios.post(`${API}/auth/register`, {
         name,
         email,
         password,
@@ -42,17 +45,22 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       setAuthError(err.response?.data?.error || 'Registration failed');
       console.error('Register Error:', err);
-      throw err; // optional: allows UI to display toast/snackbar
+      throw err;
     } finally {
       setLoading(false);
     }
   };
 
+  // LOGIN
   const login = async (email, password) => {
     setLoading(true);
     setAuthError(null);
+
     try {
-      const res = await axios.post(`${API}/login`, { email, password });
+      const res = await axios.post(`${API}/auth/login`, {
+        email,
+        password,
+      });
 
       setToken(res.data.token);
       setUser(res.data.user);
@@ -65,6 +73,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // LOGOUT
   const logout = () => {
     setToken(null);
     setUser(null);

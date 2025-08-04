@@ -1,80 +1,83 @@
-// src/controllers/authController.js
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const pool = require('../config/database');
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const db = require("../config/database");
 
-exports.register = async (req, res) => {
+// ✅ Register controller
+const registerUser = async (req, res) => {
+  const { name, email, password, bio, avatar } = req.body;
+
   try {
-    const { name, email, password } = req.body;
-
-    // Validation
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: 'All fields are required' });
-    }
-
-    // Check if email already exists
-    const existingUser = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (existingUser.rows.length > 0) {
-      return res.status(409).json({ error: 'Email already registered' });
-    }
-
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert user into DB
-    await pool.query(
-      `INSERT INTO users (id, name, email, password_hash)
-       VALUES (uuid_generate_v4(), $1, $2, $3)`,
-      [name, email, hashedPassword]
+    const result = await db.query(
+      `INSERT INTO users (name, email, password_hash, bio, avatar)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [name, email, hashedPassword, bio, avatar]
     );
 
-    return res.status(201).json({ message: 'User registered successfully' });
+    const user = result.rows[0];
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    
+
+    res.status(201).json({
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        bio: user.bio,
+        avatar: user.avatar,
+      },
+      token,
+    });
   } catch (err) {
-    console.error('❌ Registration Error:', err); // Full error for debugging
-    return res.status(500).json({ error: 'Registration failed' });
+    console.error("Registration error:", err);
+    res.status(500).json({ error: "Something went wrong" });
   }
 };
 
-
-exports.login = async (req, res) => {
+// ✅ Login controller
+const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Basic validation
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // ✅ Correct query with correct password field
-    const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
 
-    if (user.rows.length === 0) {
+    if (result.rows.length === 0) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const userData = user.rows[0];
+    const user = result.rows[0];
 
-    // ✅ Password field is 'password_hash' in your DB schema
-    const validPassword = await bcrypt.compare(password, userData.password_hash);
-    if (!validPassword) {
+    const isValid = await bcrypt.compare(password, user.password_hash);
+    if (!isValid) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Generate JWT
-    const token = jwt.sign({ id: userData.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.status(200).json({
       token,
       user: {
-        id: userData.id,
-        name: userData.name,
-        email: userData.email,
-        avatar: userData.avatar,
-        bio: userData.bio,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        bio: user.bio,
       },
     });
   } catch (err) {
-    console.error('❌ Login Error:', err.message);
+    console.error("Login error:", err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
+};
+
+// ✅ Correctly export both
+module.exports = {
+  registerUser,
+  login,
 };
