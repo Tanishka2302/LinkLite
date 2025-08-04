@@ -1,27 +1,19 @@
-import api from '../api';
+// src/services/postService.js
+import api from '../utils/api';
 
 export const postService = {
   async getAllPosts() {
-    const token = localStorage.getItem('token');
-    const response = await api.get('/posts', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const response = await api.get('/posts');
     return response.data;
   },
 
   async createPost(content) {
-    const token = localStorage.getItem('token');
-    const response = await api.post('/posts', { content }, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const response = await api.post('/posts', { content });
     return response.data;
   },
 
   async getUserPosts(userId) {
-    const token = localStorage.getItem('token');
-    const response = await api.get(`/posts/user/${userId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const response = await api.get(`/posts/user/${userId}`);
     return response.data;
   },
 };
