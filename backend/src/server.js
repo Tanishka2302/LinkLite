@@ -15,10 +15,12 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // ✅ Allow frontend origin
-const allowedOrigins = [
-  'https://linklite-frontend.onrender.com',
-  'http://localhost:3000'
-];
+
+app.use(cors({
+  origin: 'https://linklite-frontend.onrender.com', // your frontend domain
+  credentials: true
+}));
+
 
 app.use(cors({
   origin: function (origin, callback) {
