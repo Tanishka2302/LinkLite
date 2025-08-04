@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -6,12 +5,22 @@ const dotenv = require('dotenv');
 const morgan = require('morgan');
 require('dotenv').config();
 
-// ✅ Define allowed frontend domains
+const authRoutes = require('./routes/authRoutes');
+const postRoutes = require('./routes/postRoutes');
+const userRoutes = require('./routes/userRoutes');
+const pool = require('./config/database'); // DB connection
+
+// ✅ DEFINE APP FIRST
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// ✅ Allowed CORS origins
 const allowedOrigins = [
   'http://localhost:3000',
   'https://linklite-frontend.onrender.com'
 ];
 
+// ✅ CORS middleware (after app is declared)
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -25,8 +34,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-
-// ✅ Middleware
+// ✅ Other middlewares
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json());
@@ -37,12 +45,12 @@ app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
 
-// ✅ Health check route
+// ✅ Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// ✅ 404 fallback for unknown routes
+// ✅ 404 fallback
 app.use('*', (req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
