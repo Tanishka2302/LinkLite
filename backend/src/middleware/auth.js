@@ -12,9 +12,10 @@ const authenticateToken = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    // ✅ Fix: use decoded.id instead of decoded.userId
     const result = await pool.query(
       'SELECT id, name, email, bio, avatar FROM users WHERE id = $1',
-      [decoded.id] // ✅ corrected here
+      [decoded.id]
     );
 
     if (result.rows.length === 0) {
