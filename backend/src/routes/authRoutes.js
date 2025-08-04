@@ -1,13 +1,9 @@
-const express = require("express");
+// backend/src/routes/authRoutes.js
+const express = require('express');
 const router = express.Router();
+const authController = require('../controllers/authController');
 
-// ✅ Proper import from the controller
-const { registerUser, login } = require("../controllers/authController");
-
-// ✅ Confirm these functions are not undefined
-console.log("registerUser is:", typeof registerUser); // should be 'function'
-
-router.post("/register", registerUser);
-router.post("/login", login);
+router.post('/register', authController.registerUser);
+router.post('/login', authController.loginUser);
 
 module.exports = router;
