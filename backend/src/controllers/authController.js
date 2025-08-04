@@ -32,7 +32,7 @@ exports.registerUser = async (req, res) => {
 
     res.status(201).json({ user, token });
   } catch (err) {
-    console.error('❌ Register Error:', err.message);
+    console.error('❌ Register Error:', err.stack);
     res.status(500).json({ error: 'Server error during registration' });
   }
 };
@@ -58,7 +58,7 @@ exports.loginUser = async (req, res) => {
 
     res.json({ user: safeUser, token });
   } catch (err) {
-    console.error('❌ Login Error:', err.message);
+    console.error('❌ Login Error:', err.stack);
     res.status(500).json({ error: 'Server error during login' });
   }
 };
