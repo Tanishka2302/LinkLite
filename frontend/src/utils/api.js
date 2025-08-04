@@ -1,6 +1,7 @@
+// src/utils/api.js
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL;
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://linklite-odit.onrender.com'; // ✅ Backend URL
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -9,10 +10,10 @@ const api = axios.create({
   },
 });
 
-// ✅ Automatically attach token
+// ✅ Attach token automatically
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token'); // must match localStorage key
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
