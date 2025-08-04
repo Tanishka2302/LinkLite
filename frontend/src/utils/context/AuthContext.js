@@ -1,36 +1,31 @@
+// src/context/AuthContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext();
-
-// Use the backend API URL with `/api` already included
 const API = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const userData = localStorage.getItem('user');
-    return userData ? JSON.parse(userData) : null;
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
   });
 
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState(null);
 
-  // Persist user and token
   useEffect(() => {
     if (user) localStorage.setItem('user', JSON.stringify(user));
     if (token) localStorage.setItem('token', token);
   }, [user, token]);
 
-  // REGISTER
   const register = async (name, email, password, bio, avatar = '') => {
     setLoading(true);
     setAuthError(null);
 
     try {
-      const avatarUrl =
-  avatar ||
-  `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3b82f6&color=fff&rounded=true&size=128`;
+      const avatarUrl = avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3b82f6&color=fff&rounded=true&size=128`;
 
       const res = await axios.post(`${API}/auth/register`, {
         name,
@@ -51,16 +46,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // LOGIN
   const login = async (email, password) => {
     setLoading(true);
     setAuthError(null);
 
     try {
-      const res = await axios.post(`${API}/auth/login`, {
-        email,
-        password,
-      });
+      const res = await axios.post(`${API}/auth/login`, { email, password });
 
       setToken(res.data.token);
       setUser(res.data.user);
@@ -73,7 +64,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // LOGOUT
   const logout = () => {
     setToken(null);
     setUser(null);
