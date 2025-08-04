@@ -6,23 +6,27 @@ const morgan = require('morgan');
 require('dotenv').config();
 
 // ✅ Define allowed frontend domains
+
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://linklite-frontend.onrender.com',
+  'https://linklite-frontend.onrender.com'
 ];
-
 const app = express();
 const PORT = process.env.PORT || 3001;
-
-// ✅ Correct CORS setup
 app.use(cors({
-  origin: function (origin, callback) {
+  origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error('CORS not allowed'));
     }
   },
+  credentials: true
+}));
+
+
+// ✅ Correct CORS setup
+
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
