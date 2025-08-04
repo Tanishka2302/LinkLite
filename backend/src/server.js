@@ -3,24 +3,18 @@ const cors = require('cors');
 const helmet = require('helmet');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
+require('dotenv').config();
 
-dotenv.config();
-
-const authRoutes = require('./routes/authRoutes');
-const postRoutes = require('./routes/postRoutes');
-const userRoutes = require('./routes/userRoutes');
-const pool = require('./config/database');
-
-const app = express();
-const PORT = process.env.PORT || 3001;
-
-// ✅ Define allowed origins (whitelist)
+// ✅ Define allowed frontend domains
 const allowedOrigins = [
   'http://localhost:3000',
   'https://linklite-frontend.onrender.com',
 ];
 
-// ✅ CORS middleware
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// ✅ Correct CORS setup
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -33,6 +27,9 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// ...rest of your code
+
 
 // ✅ Middleware
 app.use(helmet());
