@@ -8,9 +8,18 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchUserData();
-  }, []);
+useEffect(() => {
+  const fetchUserData = async () => {
+    try {
+      const data = await userService.getUserProfile(); // ✅ no userId passed
+      setUser(data.user);
+    } catch (error) {
+      console.error('Error fetching user data:', error); // <= Your error
+    }
+  };
+
+  fetchUserData();
+}, []);
 
   const fetchUserData = async () => {
     try {
