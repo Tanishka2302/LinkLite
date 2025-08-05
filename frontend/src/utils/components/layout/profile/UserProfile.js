@@ -1,64 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import { userService } from '../../../services/userService';
-import { postService } from '../../../services/postService';
 import PostCard from '../posts/PostCard';
 
 const UserProfile = () => {
-  const { id: routeId } = useParams(); // ID from URL (if present)
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const fetchUserData = async (userId) => {
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
     try {
       setLoading(true);
-
-      const [userResponse, postsResponse] = await Promise.all([
-        userService.getUserProfile(userId),
-        postService.getUserPosts(userId),
-      ]);
-
-      setUser(userResponse.user || userResponse);
-      setPosts(postsResponse.posts || postsResponse);
+      const response = await userService.getLoggedInUserProfile();
+      const { user, posts } = response.data;
+      setUser(user);
+      setPosts(posts);
       setError('');
     } catch (error) {
       const msg = error?.response?.data?.error || error.message || 'Failed to load user profile';
-      console.error('❌ Error fetching user data:', msg, error);
       setError(msg);
+      console.error('Error fetching user data:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    let userId = routeId;
-
-    if (!userId) {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          userId = parsedUser?._id;
-        } catch (e) {
-          console.error('Failed to parse user from localStorage:', e);
-        }
-      }
-    }
-
-    if (userId) {
-      fetchUserData(userId);
-    } else {
-      setError('User ID not found in route or localStorage');
-      setLoading(false);
-    }
-  }, [routeId]);
-
-  // Loading state
   if (loading) {
     return (
       <div className="space-y-6">
+        {/* Loading Skeleton */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="animate-pulse">
             <div className="flex items-start space-x-4">
@@ -71,21 +45,16 @@ const UserProfile = () => {
             </div>
           </div>
         </div>
-        <div className="space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-white rounded-lg shadow-md p-6">
-              <div className="animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                <div className="h-20 bg-gray-200 rounded"></div>
-              </div>
-            </div>
-          ))}
-        </div>
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="bg-white rounded-lg shadow-md p-6 animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+            <div className="h-20 bg-gray-200 rounded"></div>
+          </div>
+        ))}
       </div>
     );
   }
 
-  // Error or user not found
   if (error || !user) {
     return (
       <div className="text-center py-8">
@@ -94,7 +63,6 @@ const UserProfile = () => {
     );
   }
 
-  // Profile UI
   const avatarUrl =
     user.avatar ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3b82f6&color=fff&rounded=true&size=128`;
@@ -122,7 +90,7 @@ const UserProfile = () => {
         {posts.length > 0 ? (
           <div className="space-y-4">
             {posts.map((post) => (
-              <PostCard key={post._id || post.id} post={post} />
+              <PostCard key={post.id} post={post} />
             ))}
           </div>
         ) : (
