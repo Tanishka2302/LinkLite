@@ -19,23 +19,18 @@ const UserProfile = () => {
   }, [id]);
 
   const fetchUserData = async (userId) => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
+    const [userResponse, postsResponse] = await Promise.all([
+      userService.getUserProfile(userId),
+      postService.getUserPosts(userId),
+    ]);
 
-      const userUrl = `/users/${userId}`;
-      const postsUrl = `/posts/user/${userId}`;
-
-      // ✅ Helpful debug logs
-      console.log("📦 API Base URL:", api.defaults.baseURL);
-      console.log("🔍 Full User URL:", api.defaults.baseURL + userUrl);
-      console.log("🔍 Full Posts URL:", api.defaults.baseURL + postsUrl);
-
-      const [userResponse, postsResponse] = await Promise.all([
-        userService.getUserProfile(userId),
-        postService.getUserPosts(userId),
-      ]);
-
-  catch (error) {
+    // ✅ Flexible response parsing
+    setUser(userResponse.user || userResponse);
+    setPosts(postsResponse.posts || postsResponse);
+    setError('');
+  } catch (error) {
     const msg = error?.response?.data?.error || error.message || 'Failed to load user profile';
     console.error('❌ Error fetching user data:', msg, error);
     setError(msg);
@@ -43,6 +38,7 @@ const UserProfile = () => {
     setLoading(false);
   }
 };
+
 
 
   if (loading) {
