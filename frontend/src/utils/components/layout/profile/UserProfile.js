@@ -18,6 +18,9 @@ const UserProfile = () => {
   }, [id]);
 
   const fetchUserData = async (userId) => {
+    console.log("User ID param:", userId);
+console.log("API base URL:", api.defaults.baseURL);
+
     try {
       setLoading(true);
       const [userResponse, postsResponse] = await Promise.all([
