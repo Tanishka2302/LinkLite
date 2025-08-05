@@ -3,44 +3,59 @@ import { useParams } from 'react-router-dom';
 import { userService } from '../../../services/userService';
 import { postService } from '../../../services/postService';
 import PostCard from '../posts/PostCard';
-import api from '../../../utils/api'; // ✅ Make sure this is imported!
 
 const UserProfile = () => {
-  const { id } = useParams();
+  const { id: routeId } = useParams(); // ID from URL (if present)
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (id) {
-      fetchUserData(id);
-    }
-  }, [id]);
-
   const fetchUserData = async (userId) => {
-  try {
-    setLoading(true);
-    const [userResponse, postsResponse] = await Promise.all([
-      userService.getUserProfile(userId),
-      postService.getUserPosts(userId),
-    ]);
+    try {
+      setLoading(true);
 
-    // ✅ Flexible response parsing
-    setUser(userResponse.user || userResponse);
-    setPosts(postsResponse.posts || postsResponse);
-    setError('');
-  } catch (error) {
-    const msg = error?.response?.data?.error || error.message || 'Failed to load user profile';
-    console.error('❌ Error fetching user data:', msg, error);
-    setError(msg);
-  } finally {
-    setLoading(false);
-  }
-};
+      const [userResponse, postsResponse] = await Promise.all([
+        userService.getUserProfile(userId),
+        postService.getUserPosts(userId),
+      ]);
 
+      setUser(userResponse.user || userResponse);
+      setPosts(postsResponse.posts || postsResponse);
+      setError('');
+    } catch (error) {
+      const msg = error?.response?.data?.error || error.message || 'Failed to load user profile';
+      console.error('❌ Error fetching user data:', msg, error);
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
+    let userId = routeId;
 
+    if (!userId) {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          userId = parsedUser?._id;
+        } catch (e) {
+          console.error('Failed to parse user from localStorage:', e);
+        }
+      }
+    }
+
+    if (userId) {
+      fetchUserData(userId);
+    } else {
+      setError('User ID not found in route or localStorage');
+      setLoading(false);
+    }
+  }, [routeId]);
+
+  // Loading state
   if (loading) {
     return (
       <div className="space-y-6">
@@ -70,6 +85,7 @@ const UserProfile = () => {
     );
   }
 
+  // Error or user not found
   if (error || !user) {
     return (
       <div className="text-center py-8">
@@ -78,6 +94,7 @@ const UserProfile = () => {
     );
   }
 
+  // Profile UI
   const avatarUrl =
     user.avatar ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3b82f6&color=fff&rounded=true&size=128`;
@@ -105,7 +122,7 @@ const UserProfile = () => {
         {posts.length > 0 ? (
           <div className="space-y-4">
             {posts.map((post) => (
-              <PostCard key={post.id} post={post} />
+              <PostCard key={post._id || post.id} post={post} />
             ))}
           </div>
         ) : (
