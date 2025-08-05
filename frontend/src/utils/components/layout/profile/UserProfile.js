@@ -18,9 +18,6 @@ const UserProfile = () => {
   }, [id]);
 
   const fetchUserData = async (userId) => {
-    console.log("User ID param:", userId);
-console.log("API base URL:", api.defaults.baseURL);
-
     try {
       setLoading(true);
       const [userResponse, postsResponse] = await Promise.all([
@@ -31,8 +28,9 @@ console.log("API base URL:", api.defaults.baseURL);
       setPosts(postsResponse.posts);
       setError('');
     } catch (error) {
-      setError(error?.response?.data?.error || 'Failed to load user profile');
-      console.error('Error fetching user data:', error);
+      const msg = error?.response?.data?.error || 'Failed to load user profile';
+      setError(msg);
+      console.error('❌ Error fetching user data:', msg, error);
     } finally {
       setLoading(false);
     }
@@ -75,7 +73,6 @@ console.log("API base URL:", api.defaults.baseURL);
     );
   }
 
-  // ✅ Move avatarUrl calculation here
   const avatarUrl =
     user.avatar ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3b82f6&color=fff&rounded=true&size=128`;
