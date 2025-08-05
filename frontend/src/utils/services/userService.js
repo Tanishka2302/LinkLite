@@ -1,9 +1,8 @@
-import api from '../../api'; // ⬅️ Go up two levels
-
+import api from '../../api';
 
 export const userService = {
-  async getUserProfile(userId) {
-    const response = await api.get(`/users/${userId}`);
+  async getLoggedInUserProfile() {
+    const response = await api.get('/users/me');
     return response.data;
   },
 };
