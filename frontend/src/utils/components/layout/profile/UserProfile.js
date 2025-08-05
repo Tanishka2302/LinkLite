@@ -35,18 +35,15 @@ const UserProfile = () => {
         postService.getUserPosts(userId),
       ]);
 
-      // ✅ Flexible response parsing
-      setUser(userResponse.user || userResponse);
-      setPosts(postsResponse.posts || postsResponse);
-      setError('');
-    } catch (error) {
-      const msg = error?.response?.data?.error || 'Failed to load user profile';
-      setError(msg);
-      console.error('❌ Error fetching user data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  catch (error) {
+    const msg = error?.response?.data?.error || error.message || 'Failed to load user profile';
+    console.error('❌ Error fetching user data:', msg, error);
+    setError(msg);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   if (loading) {
     return (
