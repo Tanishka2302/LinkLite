@@ -1,4 +1,5 @@
-import api from '../api';
+import api from '../../api'; // ⬅️ Go up two levels
+
 
 export const authService = {
   async login(credentials) {
