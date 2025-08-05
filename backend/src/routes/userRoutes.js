@@ -6,4 +6,5 @@ const { authenticateToken } = require('../middleware/authMiddleware');
 // GET /api/users/me
 router.get('/me', authenticateToken, getLoggedInUserProfile);
 
+
 module.exports = router;
