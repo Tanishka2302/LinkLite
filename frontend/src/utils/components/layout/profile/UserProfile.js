@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { userService } from '../../../services/userService';
 import { postService } from '../../../services/postService';
 import PostCard from '../posts/PostCard';
+import api from '../../../utils/api'; // ✅ Make sure this is imported!
 
 const UserProfile = () => {
   const { id } = useParams();
@@ -20,17 +21,28 @@ const UserProfile = () => {
   const fetchUserData = async (userId) => {
     try {
       setLoading(true);
+
+      const userUrl = `/users/${userId}`;
+      const postsUrl = `/posts/user/${userId}`;
+
+      // ✅ Helpful debug logs
+      console.log("📦 API Base URL:", api.defaults.baseURL);
+      console.log("🔍 Full User URL:", api.defaults.baseURL + userUrl);
+      console.log("🔍 Full Posts URL:", api.defaults.baseURL + postsUrl);
+
       const [userResponse, postsResponse] = await Promise.all([
         userService.getUserProfile(userId),
         postService.getUserPosts(userId),
       ]);
-      setUser(userResponse.user);
-      setPosts(postsResponse.posts);
+
+      // ✅ Flexible response parsing
+      setUser(userResponse.user || userResponse);
+      setPosts(postsResponse.posts || postsResponse);
       setError('');
     } catch (error) {
       const msg = error?.response?.data?.error || 'Failed to load user profile';
       setError(msg);
-      console.error('❌ Error fetching user data:', msg, error);
+      console.error('❌ Error fetching user data:', error);
     } finally {
       setLoading(false);
     }
