@@ -1,5 +1,6 @@
 // src/services/postService.js
-import api from '../utils/api';
+import api from '../api';
+
 
 export const postService = {
   async getAllPosts() {
