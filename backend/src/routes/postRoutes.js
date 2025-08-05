@@ -3,9 +3,13 @@ const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
 const postController = require('../controllers/postController');
 
-// Protect routes with middleware
+// ✅ Route to get all posts
 router.get('/', authenticateToken, postController.getAllPosts);
+
+// ✅ Route to create a post
 router.post('/', authenticateToken, postController.createPost);
-// etc.
+
+// ✅ ✅ NEW: Get all posts by a specific user
+router.get('/user/:id', authenticateToken, postController.getUserPosts);
 
 module.exports = router;
