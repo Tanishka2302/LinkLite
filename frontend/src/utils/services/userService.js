@@ -1,4 +1,4 @@
-
+import api from '../../api';
 export const userService = {
   // ❌ Remove the userId param — you don’t need it
   async getUserProfile() {
