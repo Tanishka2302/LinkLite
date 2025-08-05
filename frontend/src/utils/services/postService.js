@@ -1,5 +1,6 @@
 // src/services/postService.js
-import api from '../api';
+import api from '../../api'; // ⬅️ Go up two levels
+
 
 
 export const postService = {
