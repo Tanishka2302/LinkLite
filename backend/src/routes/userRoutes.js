@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { getLoggedInUserProfile } = require('../controllers/userController');
 const { authenticateToken } = require('../middleware/authMiddleware');
+const { getLoggedInUserProfile } = require('../controllers/userController');
 
-// GET /api/users/me
+// ✅ Logged-in user route
 router.get('/me', authenticateToken, getLoggedInUserProfile);
 
+// Already existing route
+router.get('/:id', authenticateToken, getUserProfile);
 
 module.exports = router;
