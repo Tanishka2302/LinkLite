@@ -8,23 +8,11 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-useEffect(() => {
-  const fetchUserData = async () => {
-    try {
-      const data = await userService.getUserProfile(); // ✅ no userId passed
-      setUser(data.user);
-    } catch (error) {
-      console.error('Error fetching user data:', error); // <= Your error
-    }
-  };
-
-  fetchUserData();
-}, []);
-
+  // ✅ Correct single fetch function
   const fetchUserData = async () => {
     try {
       setLoading(true);
-      const response = await userService.getLoggedInUserProfile();
+      const response = await userService.getLoggedInUserProfile(); // <- your correct service
       const { user, posts } = response.data;
       setUser(user);
       setPosts(posts);
@@ -38,10 +26,14 @@ useEffect(() => {
     }
   };
 
+  // ✅ useEffect calls that one function
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
   if (loading) {
     return (
       <div className="space-y-6">
-        {/* Loading Skeleton */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="animate-pulse">
             <div className="flex items-start space-x-4">
