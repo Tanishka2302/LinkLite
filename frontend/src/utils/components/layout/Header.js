@@ -26,7 +26,7 @@ const Header = () => {
             >
               Feed
             </Link>
-            <Link 
+          /*  <Link 
               to={`/profile/${user.id}`} 
               className="px-3 py-2 text-gray-700 hover:text-blue-600 transition-colors"
             >
@@ -35,7 +35,7 @@ const Header = () => {
             <button
               onClick={handleLogout}
               className="px-3 py-2 text-gray-700 hover:text-red-600 transition-colors"
-            >
+            >*/
               Logout
             </button>
           </nav>
