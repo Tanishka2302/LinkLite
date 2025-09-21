@@ -1,20 +1,25 @@
 const { Pool } = require('pg');
-require('dotenv').config();
+require('dotenv').config({ path: __dirname + '/../../.env' });
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+if (!process.env.DATABASE_URL) {
+  console.error('❌ DATABASE_URL is missing!');
+  process.exit(1);
+}
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false, // ✅ Needed for PostgreSQL on Render
-  },
+  ssl: isProduction ? { rejectUnauthorized: false } : false, // SSL for Render
 });
 
-// ✅ Optional: Test connection (once)
 pool.connect((err, client, release) => {
   if (err) {
-    return console.error('❌ Error acquiring client', err.stack);
+    console.error('❌ Error acquiring client:', err.message);
+  } else {
+    console.log('✅ Connected to PostgreSQL database');
+    release();
   }
-  console.log('✅ Connected to PostgreSQL database');
-  release();
 });
 
 module.exports = pool;
