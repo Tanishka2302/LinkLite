@@ -4,20 +4,18 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 // -------------------
-// REGISTER USER
+// REGISTER USER (Your existing code is correct)
 // -------------------
 const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Validate input
     if (!name || !email || !password) {
       return res
         .status(400)
         .json({ error: 'Name, email, and password are required' });
     }
 
-    // Check if user exists
     const existing = await pool.query('SELECT * FROM users WHERE email = $1', [
       email,
     ]);
@@ -25,27 +23,18 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ error: 'User already exists' });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert user (use password_hash column)
     const result = await pool.query(
       'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, name, email',
       [name, email, hashedPassword]
     );
 
-    // Generate JWT
-    let token;
-    try {
-      token = jwt.sign(
-        { id: result.rows[0].id },
-        process.env.JWT_SECRET,
-        { expiresIn: '1h' }
-      );
-    } catch (err) {
-      console.error('JWT signing error (register):', err);
-      return res.status(500).json({ error: 'JWT signing failed' });
-    }
+    const token = jwt.sign(
+      { id: result.rows[0].id },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
 
     res.status(201).json({ user: result.rows[0], token });
   } catch (error) {
@@ -54,35 +43,60 @@ const registerUser = async (req, res) => {
   }
 };
 
+
 // -------------------
-// LOGIN USER
+// LOGIN USER (This is the corrected backend logic)
 // -------------------
-// ----------------------
-// Login
-// ----------------------
-const login = async (email, password) => {
-  setLoading(true);
-  setAuthError(null);
+const loginUser = async (req, res) => {
   try {
-    // FIX #1: Added '/api' prefix to the login request URL
-    const res = await axios.post(`${API}/api/auth/login`, { email, password });
+    const { email, password } = req.body;
 
-    setToken(res.data.token);
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
 
-    // Fetch logged-in user's profile
-    // FIX #2: Added '/api' prefix to the user profile request URL
-    const profileRes = await axios.get(`${API}/api/users/me`, {
-      headers: { Authorization: `Bearer ${res.data.token}` },
-    });
+    // Find user by email
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const user = result.rows[0];
 
-    setUser(profileRes.data);
-  } catch (err) {
-    setAuthError(err.response?.data?.error || 'Login failed');
-    console.error('Login Error:', err);
-    throw err;
-  } finally {
-    setLoading(false);
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid credentials' });
+    }
+
+    // Compare password with the stored hash
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Invalid credentials' });
+    }
+    
+    // Generate JWT
+    const token = jwt.sign(
+        { id: user.id },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+    );
+    
+    // Send back user data (without the password hash) and token
+    const userResponse = {
+        id: user.id,
+        name: user.name,
+        email: user.email
+    };
+
+    res.status(200).json({ user: userResponse, token });
+
+  } catch (error) {
+    console.error('Login user error:', error);
+    res.status(500).json({ error: 'Server error during login' });
   }
 };
 
-module.exports = { registerUser, loginUser };
+
+// -------------------
+// EXPORT THE FUNCTIONS
+// -------------------
+module.exports = {
+  registerUser,
+  loginUser
+};
