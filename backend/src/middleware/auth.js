@@ -14,7 +14,7 @@ const authenticateToken = async (req, res, next) => {
 
     // CHANGE: Removed 'bio' from this database query
     const result = await pool.query(
-      'SELECT id, name, email, avatar FROM users WHERE id = $1',
+      'SELECT id, name, email FROM users WHERE id = $1',
       [decoded.id]
     );
 
