@@ -27,7 +27,26 @@ const getUserProfile = async (req, res) => {
   }
 };
 
+// ✅ ADD THIS NEW FUNCTION for your profile page
+const getProfileAndPosts = async (req, res) => {
+  try {
+    const user = req.user; // From the authenticateToken middleware
+    const postsResult = await pool.query(
+      'SELECT * FROM posts WHERE author_id = $1 ORDER BY created_at DESC',
+      [user.id]
+    );
+
+    // Return both the user info and their posts
+    res.status(200).json({ user, posts: postsResult.rows });
+  } catch (error) {
+    console.error('Get profile and posts error:', error);
+    res.status(500).json({ error: 'Server error while fetching profile data' });
+  }
+};
+
+
 module.exports = {
   getMe,
   getUserProfile,
+  getProfileAndPosts, // ✅ EXPORT the new function
 };
