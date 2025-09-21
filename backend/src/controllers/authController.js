@@ -57,51 +57,31 @@ const registerUser = async (req, res) => {
 // -------------------
 // LOGIN USER
 // -------------------
-const loginUser = async (req, res) => {
+// ----------------------
+// Login
+// ----------------------
+const login = async (email, password) => {
+  setLoading(true);
+  setAuthError(null);
   try {
-    const { email, password } = req.body;
-    console.log('Login attempt:', { email }); // don't log password in production
+    // FIX #1: Added '/api' prefix to the login request URL
+    const res = await axios.post(`${API}/api/auth/login`, { email, password });
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password required' });
-    }
+    setToken(res.data.token);
 
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [
-      email,
-    ]);
-
-    if (result.rows.length === 0) {
-      return res.status(400).json({ error: 'Invalid credentials' });
-    }
-
-    const user = result.rows[0];
-
-    // Compare with password_hash
-    const match = await bcrypt.compare(password, user.password_hash);
-
-    if (!match) {
-      return res.status(400).json({ error: 'Invalid credentials' });
-    }
-
-    let token;
-    try {
-      token = jwt.sign(
-        { id: user.id },
-        process.env.JWT_SECRET,
-        { expiresIn: '1h' }
-      );
-    } catch (err) {
-      console.error('JWT signing error (login):', err);
-      return res.status(500).json({ error: 'JWT signing failed' });
-    }
-
-    res.json({
-      token,
-      user: { id: user.id, name: user.name, email: user.email },
+    // Fetch logged-in user's profile
+    // FIX #2: Added '/api' prefix to the user profile request URL
+    const profileRes = await axios.get(`${API}/api/users/me`, {
+      headers: { Authorization: `Bearer ${res.data.token}` },
     });
-  } catch (error) {
-    console.error('Server error during login:', error);
-    res.status(500).json({ error: 'Server error during login' });
+
+    setUser(profileRes.data);
+  } catch (err) {
+    setAuthError(err.response?.data?.error || 'Login failed');
+    console.error('Login Error:', err);
+    throw err;
+  } finally {
+    setLoading(false);
   }
 };
 
