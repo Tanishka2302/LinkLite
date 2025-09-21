@@ -10,8 +10,8 @@ const getAllPosts = async (req, res) => {
         p.likes,
         p.created_at,
         u.id AS author_id,
-        u.name AS author_name,
-        u.avatar AS author_avatar
+        u.name AS author_name
+        -- REMOVED: u.avatar AS author_avatar
       FROM posts p
       JOIN users u ON p.author_id = u.id
       ORDER BY p.created_at DESC
@@ -24,7 +24,7 @@ const getAllPosts = async (req, res) => {
       timestamp: post.created_at,
       authorId: post.author_id,
       authorName: post.author_name,
-      authorAvatar: post.author_avatar
+      // REMOVED: authorAvatar: post.author_avatar
     }));
 
     res.json({ posts });
@@ -55,8 +55,9 @@ const createPost = async (req, res) => {
 
     const post = result.rows[0];
 
+    // REMOVED: 'avatar' from the SELECT statement
     const authorResult = await pool.query(
-      'SELECT id, name, avatar FROM users WHERE id = $1',
+      'SELECT id, name FROM users WHERE id = $1',
       [userId]
     );
 
@@ -71,7 +72,7 @@ const createPost = async (req, res) => {
         timestamp: post.created_at,
         authorId: author.id,
         authorName: author.name,
-        authorAvatar: author.avatar
+        // REMOVED: authorAvatar: author.avatar
       }
     });
   } catch (error) {
@@ -96,8 +97,8 @@ const getUserPosts = async (req, res) => {
         p.likes,
         p.created_at,
         u.id AS author_id,
-        u.name AS author_name,
-        u.avatar AS author_avatar
+        u.name AS author_name
+        -- REMOVED: u.avatar AS author_avatar
       FROM posts p
       JOIN users u ON p.author_id = u.id
       WHERE p.author_id = $1
@@ -111,7 +112,7 @@ const getUserPosts = async (req, res) => {
       timestamp: post.created_at,
       authorId: post.author_id,
       authorName: post.author_name,
-      authorAvatar: post.author_avatar
+      // REMOVED: authorAvatar: post.author_avatar
     }));
 
     res.json({ posts });
@@ -125,5 +126,5 @@ const getUserPosts = async (req, res) => {
 module.exports = {
   getAllPosts,
   createPost,
-  getUserPosts, // ✅ Ensure this is exported
+  getUserPosts,
 };
