@@ -1,16 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../config/database'); // your database.js
+const { getMe, getUserProfile } = require('../controllers/userController'); // Import both functions
+const { authenticateToken } = require('../middleware/authMiddleware');
 
-// Test route to get all users (unprotected)
-router.get('/all', async (req, res) => {
-  try {
-    const result = await pool.query("SELECT * FROM users;");
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: "Server error" });
-  }
-});
+// GET /api/users/me - Get the logged-in user's profile
+router.get('/me', authenticateToken, getMe);
+
+// GET /api/users/:id - Get a user profile by their ID
+router.get('/:id', getUserProfile); // Add this new line
 
 module.exports = router;
