@@ -1,3 +1,4 @@
+// Forcing a new deployment with the correct code
 const pool = require('../config/database');
 
 // GET ALL POSTS
