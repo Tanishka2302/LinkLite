@@ -28,12 +28,12 @@ const Header = () => {
             </Link>
 
             {
-            <Link 
-              to={`/profile/${user.id}`} 
-              className="px-3 py-2 text-gray-700 hover:text-blue-600 transition-colors"
-            >
-              Profile
-            </Link>
+         <Link 
+         to={`/profile/${user.id}`} 
+         className="px-3 py-2 text-gray-700 hover:text-blue-600 transition-colors"
+       >
+         Profile
+       </Link>
             }
 
             <button
