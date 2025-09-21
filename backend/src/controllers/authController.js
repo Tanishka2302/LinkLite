@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 // -------------------
-// REGISTER USER (Your existing code is correct)
+// REGISTER USER
 // -------------------
 const registerUser = async (req, res) => {
   try {
@@ -45,7 +45,7 @@ const registerUser = async (req, res) => {
 
 
 // -------------------
-// LOGIN USER (This is the corrected backend logic)
+// LOGIN USER
 // -------------------
 const loginUser = async (req, res) => {
   try {
@@ -74,7 +74,7 @@ const loginUser = async (req, res) => {
     const token = jwt.sign(
         { id: user.id },
         process.env.JWT_SECRET,
-        { expiresIn: '1h' }
+        { expiresIn: '7d' }
     );
     
     // Send back user data (without the password hash) and token
