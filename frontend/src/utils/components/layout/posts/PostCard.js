@@ -104,13 +104,13 @@ const PostCard = ({ post }) => {
       {showComments && (
         <div className="mt-4 pt-4 border-t">
           <form onSubmit={handleCommentSubmit} className="flex items-start space-x-2 mb-4">
-            <input
-              type="text"
-              value={newComment}
-              onChange={(e) => setNewComment(e.largel.value)}
-              placeholder="Write a comment..."
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+          <input
+  type="text"
+  value={newComment}
+  onChange={(e) => setNewComment(e.target.value)} // ✅ Make sure it says e.target.value
+  placeholder="Write a comment..."
+  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+/>
             <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
               Post
             </button>
