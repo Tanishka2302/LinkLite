@@ -17,10 +17,20 @@ export const postService = {
     return response.data;
   },
   
-  // ✅ ADD THIS NEW FUNCTION
   async toggleLike(postId) {
-    // This sends the request to your backend's /api/posts/:id/like endpoint
     const response = await api.post(`/posts/${postId}/like`);
+    return response.data;
+  },
+
+  // ✅ ADD THIS: Get all comments for a specific post
+  async getComments(postId) {
+    const response = await api.get(`/posts/${postId}/comments`);
+    return response.data;
+  },
+
+  // ✅ ADD THIS: Create a new comment on a post
+  async createComment(postId, content) {
+    const response = await api.post(`/posts/${postId}/comments`, { content });
     return response.data;
   },
 };

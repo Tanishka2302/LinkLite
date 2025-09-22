@@ -1,25 +1,25 @@
-const { Pool } = require('pg');
-require('dotenv').config({ path: __dirname + '/../../.env' });
+// src/config/database.js
 
+// This will load the .env file from the root of your 'backend' folder
+require('dotenv').config(); 
+const { Pool } = require('pg');
+
+// This is a good practice for automatically handling SSL on Render
 const isProduction = process.env.NODE_ENV === 'production';
 
+// Check that the database URL is provided
 if (!process.env.DATABASE_URL) {
-  console.error('❌ DATABASE_URL is missing!');
-  process.exit(1);
+  throw new Error('DATABASE_URL environment variable is not set');
 }
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: isProduction ? { rejectUnauthorized: false } : false, // SSL for Render
+  // Use SSL in production (on Render), but not for local development
+  ssl: isProduction ? { rejectUnauthorized: false } : false,
 });
 
-pool.connect((err, client, release) => {
-  if (err) {
-    console.error('❌ Error acquiring client:', err.message);
-  } else {
-    console.log('✅ Connected to PostgreSQL database');
-    release();
-  }
-});
+// ✅ The pool manages connections automatically. 
+// You don't need to call pool.connect() here.
+// The pool will connect on its own when the first query is made.
 
 module.exports = pool;
