@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { postService } from '../../services/postService';
+import { postService } from '../../../services/postService';
 import PostCard from './PostCard';
 import PostCreate from './PostCreate';
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { postService } from '../../services/postService';
+import { postService } from '../../../services/postService';
 
 const PostCreate = ({ onPostCreated }) => {
   const [content, setContent] = useState('');
