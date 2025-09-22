@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { postService } from '../../../../services/postService';
+import { postService } from '../../../services/postService';
 import { FaHeart } from 'react-icons/fa';
 import CommentCard from './CommentCard';
 
