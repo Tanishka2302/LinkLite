@@ -25,15 +25,17 @@ const registerUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // ✅ FIX: Changed column name to 'password_hash'
     const result = await pool.query(
-      'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email',
+      'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, name, email',
       [name, email, hashedPassword]
     );
 
+    // ✅ CONSISTENCY: Matched token expiration to 7 days
     const token = jwt.sign(
       { id: result.rows[0].id },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: '7d' } 
     );
 
     res.status(201).json({ user: result.rows[0], token });
@@ -55,29 +57,26 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // Find user by email
     const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     const user = result.rows[0];
 
     if (!user) {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
-
-    // Compare password with the stored hash
-    const isMatch = await bcrypt.compare(password, user.password);
+    
+    // ✅ FIX: Changed property to 'user.password_hash' to match the database
+    const isMatch = await bcrypt.compare(password, user.password_hash);
 
     if (!isMatch) {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
     
-    // Generate JWT
     const token = jwt.sign(
         { id: user.id },
         process.env.JWT_SECRET,
         { expiresIn: '7d' }
     );
     
-    // Send back user data (without the password hash) and token
     const userResponse = {
         id: user.id,
         name: user.name,
