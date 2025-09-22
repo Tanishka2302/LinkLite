@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { postService } from '../../../../services/postService'; // ✅ Import your service
+import { postService } from '../../../services/postService'; // ✅ Import your service
 import { FaHeart } from 'react-icons/fa'; // ✅ Import an icon for a better UI
 
 const PostCard = ({ post }) => {
