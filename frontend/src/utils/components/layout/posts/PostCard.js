@@ -16,7 +16,7 @@ const PostCard = ({ post }) => {
       await postService.toggleLike(post.id);
       setIsLiked(!isLiked);
       setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
-    } catch (error) {
+    } catch (error) { // ✅ Added braces
       console.error('Failed to like post:', error);
     }
   };
@@ -42,7 +42,7 @@ const PostCard = ({ post }) => {
       const createdComment = await postService.createComment(post.id, newComment);
       setComments([createdComment, ...comments]);
       setNewComment('');
-    } catch (error)
+    } catch (error) { // ✅ Added braces
       console.error('Failed to create comment:', error);
     }
   };
