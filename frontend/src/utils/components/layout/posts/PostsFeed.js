@@ -1,7 +1,5 @@
-// src/components/layout/posts/PostsFeed.js
-
 import React, { useState, useEffect } from 'react';
-import { postService } from '../../../services/postService';
+import { postService } from '../../services/postService';
 import PostCard from './PostCard';
 import PostCreate from './PostCreate';
 
@@ -27,28 +25,28 @@ const PostsFeed = () => {
     fetchPosts();
   }, []);
 
-  // ✅ ADDED: A more efficient function to handle new posts.
-  // This function takes the new post from the child component (PostCreate)
-  // and adds it to the top of the existing posts list in the state.
   const handlePostCreated = (newPost) => {
     setPosts([newPost, ...posts]);
   };
 
   if (loading) {
-    // ... your loading skeleton JSX ...
     return <div>Loading posts...</div>;
   }
 
   if (error) {
-    // ... your error message JSX ...
-    return <div>{error}</div>;
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-600">{error}</p>
+        <button onClick={fetchPosts} className="mt-4 text-blue-600 hover:underline">
+          Try again
+        </button>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
-      {/* ✅ UPDATED: Pass the new handler function to the PostCreate component. */}
       <PostCreate onPostCreated={handlePostCreated} />
-      
       <div className="space-y-4">
         {posts.map((post) => (
           <PostCard key={post.id} post={post} />

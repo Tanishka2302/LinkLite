@@ -1,6 +1,5 @@
-// src/components/posts/PostCreate.js
 import React, { useState } from 'react';
-import { postService } from '../../../services/postService';
+import { postService } from '../../services/postService';
 
 const PostCreate = ({ onPostCreated }) => {
   const [content, setContent] = useState('');
@@ -12,16 +11,11 @@ const PostCreate = ({ onPostCreated }) => {
 
     setLoading(true);
     try {
-      // ✅ FIX: Capture the response from the server
       const response = await postService.createPost(content);
-      
-      setContent('');
-      
-      // ✅ FIX: Pass the new post object from the response up to the parent
       onPostCreated(response.post);
-
+      setContent('');
     } catch (error) {
-      console.error('Error creating post:', error);
+      console.error("Failed to create post:", error);
     } finally {
       setLoading(false);
     }
