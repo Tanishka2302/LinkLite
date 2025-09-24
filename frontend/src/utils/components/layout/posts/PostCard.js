@@ -6,7 +6,7 @@ import { postService } from '../../../services/postService';
 import { useAuth } from '../../../context/AuthContext'; // ✅ ADDED: Import useAuth to check for the current user
 import { FaHeart, FaEdit, FaTrash } from 'react-icons/fa'; // ✅ ADDED: Edit and Delete icons
 import CommentCard from './CommentCard';
-import { useAuth } from '../../../context/AuthContext';
+
 
 // ✅ UPDATED: Accept new props for delete and update events from the parent
 const PostCard = ({ post, onPostDeleted, onPostUpdated }) => {
