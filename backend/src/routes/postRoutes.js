@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-// ✅ Import the new deletePost function
+// ✅ Import the new updatePost function
 const { 
   getAllPosts, 
   createPost, 
@@ -9,13 +9,13 @@ const {
   toggleLikePost,
   createCommentOnPost,
   getCommentsForPost,
-  deletePost
+  deletePost,
+  updatePost 
 } = require('../controllers/postController');
 const { authenticateToken } = require('../middleware/auth');
 
 
-// This custom middleware allows logged-out users to see posts,
-// but still identifies logged-in users to check their 'like' status.
+// Custom middleware for optional authentication on the main feed
 const checkOptionalAuth = (req, res, next) => {
   authenticateToken(req, res, () => {
     next();
@@ -35,9 +35,11 @@ router.get('/:id/comments', getCommentsForPost);
 router.post('/:id/comments', authenticateToken, createCommentOnPost);
 
 
-// --- DELETE ROUTE ---
-// ✅ ADDED: The new route for deleting a post (Requires login & ownership)
+// --- DELETE & EDIT ROUTES ---
 router.delete('/:id', authenticateToken, deletePost);
+
+// ✅ ADDED: The new route for updating a post (Requires login & ownership)
+router.put('/:id', authenticateToken, updatePost);
 
 
 module.exports = router;
