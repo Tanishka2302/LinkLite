@@ -1,14 +1,15 @@
 const express = require('express');
 const router = express.Router();
 
-// ✅ Import the new comment functions
+// ✅ Import the new deletePost function
 const { 
   getAllPosts, 
   createPost, 
   getUserPosts, 
   toggleLikePost,
   createCommentOnPost,
-  getCommentsForPost
+  getCommentsForPost,
+  deletePost
 } = require('../controllers/postController');
 const { authenticateToken } = require('../middleware/auth');
 
@@ -23,27 +24,20 @@ const checkOptionalAuth = (req, res, next) => {
 
 
 // --- POST & LIKE ROUTES ---
-
-// GET /api/posts - Get all posts (Visible to everyone)
 router.get('/', checkOptionalAuth, getAllPosts);
-
-// POST /api/posts - Create a new post (Requires login)
 router.post('/', authenticateToken, createPost);
-
-// GET /api/posts/user/:id - Get all posts by a specific user (Visible to everyone)
 router.get('/user/:id', getUserPosts);
-
-// POST /api/posts/:id/like - Toggle a like on a post (Requires login)
 router.post('/:id/like', authenticateToken, toggleLikePost);
 
 
 // --- COMMENT ROUTES ---
-
-// ✅ ADDED: Route to get all comments for a post (Visible to everyone)
 router.get('/:id/comments', getCommentsForPost);
-
-// ✅ ADDED: Route to create a new comment on a post (Requires login)
 router.post('/:id/comments', authenticateToken, createCommentOnPost);
+
+
+// --- DELETE ROUTE ---
+// ✅ ADDED: The new route for deleting a post (Requires login & ownership)
+router.delete('/:id', authenticateToken, deletePost);
 
 
 module.exports = router;

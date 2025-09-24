@@ -1,3 +1,5 @@
+// src/components/posts/PostsFeed.js
+
 import React, { useState, useEffect } from 'react';
 import { postService } from '../../../services/postService';
 import PostCard from './PostCard';
@@ -29,6 +31,16 @@ const PostsFeed = () => {
     setPosts([newPost, ...posts]);
   };
 
+  // ✅ ADDED: Function to handle deleting a post from the list
+  const handlePostDeleted = (deletedPostId) => {
+    setPosts(posts.filter(post => post.id !== deletedPostId));
+  };
+
+  // ✅ ADDED: Function to handle updating a post in the list
+  const handlePostUpdated = (updatedPost) => {
+    setPosts(posts.map(post => post.id === updatedPost.id ? updatedPost : post));
+  };
+
   if (loading) {
     return <div>Loading posts...</div>;
   }
@@ -49,7 +61,13 @@ const PostsFeed = () => {
       <PostCreate onPostCreated={handlePostCreated} />
       <div className="space-y-4">
         {posts.map((post) => (
-          <PostCard key={post.id} post={post} />
+          // ✅ UPDATED: Pass the new delete and update functions as props
+          <PostCard 
+            key={post.id} 
+            post={post} 
+            onPostDeleted={handlePostDeleted}
+            onPostUpdated={handlePostUpdated}
+          />
         ))}
       </div>
     </div>
