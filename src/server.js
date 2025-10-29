@@ -14,8 +14,8 @@ const app = express();
 // ✅ CORS Configuration (Render-safe)
 // ----------------------
 const allowedOrigins = [
-  'https://linklite-frontend.onrender.com', // Deployed frontend
-  'http://localhost:3000', // Local development
+  'https://linklite-frontend.onrender.com',
+  'http://localhost:3000',
 ];
 
 app.use((req, res, next) => {
@@ -26,21 +26,21 @@ app.use((req, res, next) => {
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true); // Allow Postman / server-to-server requests
+      if (!origin) return callback(null, true); // Allow server-to-server or Postman
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
+      } else {
+        console.error('❌ Blocked by CORS:', origin);
+        return callback(new Error('Not allowed by CORS'));
       }
-      console.error('❌ Blocked by CORS:', origin);
-      return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    optionsSuccessStatus: 200,
   })
 );
 
-// 🧩 Handle preflight requests (important for Render)
+// 🧩 Preflight handler
 app.options('*', cors());
 
 // ----------------------
@@ -82,13 +82,6 @@ app.get('/', (req, res) => {
 });
 
 // ----------------------
-// ✅ Test Route
-// ----------------------
-app.get('/api/test', (req, res) => {
-  res.json({ message: '✅ Backend test route is working!' });
-});
-
-// ----------------------
 // ⚠️ 404 Fallback
 // ----------------------
 app.use('*', (req, res) => {
@@ -106,7 +99,7 @@ app.use((err, req, res, next) => {
 // ----------------------
 // 🚀 Start Server
 // ----------------------
-const PORT = process.env.PORT || 10000; // Render assigns dynamic ports
+const PORT = process.env.PORT || 10000; // Render assigns this dynamically
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
