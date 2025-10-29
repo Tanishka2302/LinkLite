@@ -1,75 +1,101 @@
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+// src/controllers/authController.js
 const pool = require('../config/database');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
-// Function to generate JWT token
-const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '7d' });
-};
-
-// REGISTER CONTROLLER
-exports.register = async (req, res) => {
-  const { name, email, password, bio, avatar } = req.body;
-
+// -------------------
+// REGISTER USER
+// -------------------
+const registerUser = async (req, res) => {
   try {
-    // Check if user already exists
-    const existingUser = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
-    if (existingUser.rows.length > 0) {
-      return res.status(409).json({ error: 'Email is already registered' });
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res
+        .status(400)
+        .json({ error: 'Name, email, and password are required' });
+    }
+
+    const existing = await pool.query('SELECT * FROM users WHERE email = $1', [
+      email,
+    ]);
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ error: 'User already exists' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate default avatar if not provided
-    const avatarUrl = avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
-
+    // ✅ FIX: Changed column name to 'password_hash'
     const result = await pool.query(
-      'INSERT INTO users (name, email, password_hash, bio, avatar) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, bio, avatar',
-      [name, email, hashedPassword, bio, avatarUrl]
+      'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, name, email',
+      [name, email, hashedPassword]
     );
 
-    const user = result.rows[0];
-    const token = generateToken(user.id);
+    // ✅ CONSISTENCY: Matched token expiration to 7 days
+    const token = jwt.sign(
+      { id: result.rows[0].id },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' } 
+    );
 
-    res.status(201).json({ token, user });
+    res.status(201).json({ user: result.rows[0], token });
   } catch (error) {
-    console.error('❌ Register error:', error.message, error.stack);
-    res.status(500).json({ error: `User registration failed: ${error.message}` });
+    console.error('Register user error:', error);
+    res.status(500).json({ error: 'Server error during registration' });
   }
 };
 
-// LOGIN CONTROLLER
-exports.login = async (req, res) => {
-  const { email, password } = req.body;
 
+// -------------------
+// LOGIN USER
+// -------------------
+const loginUser = async (req, res) => {
   try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
     const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-
-    if (result.rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
     const user = result.rows[0];
-    const validPassword = await bcrypt.compare(password, user.password_hash);
 
-    if (!validPassword) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid credentials' });
     }
+    
+    // ✅ FIX: Changed property to 'user.password_hash' to match the database
+    const isMatch = await bcrypt.compare(password, user.password_hash);
 
-    const token = generateToken(user.id);
-
-    res.status(200).json({
-      token,
-      user: {
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Invalid credentials' });
+    }
+    
+    const token = jwt.sign(
+        { id: user.id },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+    );
+    
+    const userResponse = {
         id: user.id,
         name: user.name,
-        email: user.email,
-        bio: user.bio,
-        avatar: user.avatar
-      }
-    });
+        email: user.email
+    };
+
+    res.status(200).json({ user: userResponse, token });
+
   } catch (error) {
-    console.error('❌ Login error:', error.message, error.stack);
-    res.status(500).json({ error: `Login failed: ${error.message}` });
+    console.error('Login user error:', error);
+    res.status(500).json({ error: 'Server error during login' });
   }
+};
+
+
+// -------------------
+// EXPORT THE FUNCTIONS
+// -------------------
+module.exports = {
+  registerUser,
+  loginUser
 };
