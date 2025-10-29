@@ -45,12 +45,15 @@ app.use(
 );
 
 // ✅ Ensure every preflight request gets proper headers
-app.options('*', cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+app.options(
+  '*',
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 
 // ----------------------
 // ✅ Middleware
@@ -64,7 +67,8 @@ app.use(express.urlencoded({ extended: true }));
 // ✅ Database Connection
 // ----------------------
 const pool = require('./config/database');
-pool.connect()
+pool
+  .connect()
   .then(() => console.log('✅ Connected to PostgreSQL database'))
   .catch((err) => console.error('❌ Database connection error:', err));
 
@@ -99,4 +103,12 @@ app.use('*', (req, res) => {
 app.use((err, req, res, next) => {
   console.error('🔥 Server error:', err.stack || err.message);
   res.status(500).json({ error: err.message || 'Internal server error' });
-})
+});
+
+// ----------------------
+// 🚀 Start Server
+// ----------------------
+const PORT = process.env.PORT || 10000; // Render uses its own port
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
