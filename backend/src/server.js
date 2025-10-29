@@ -11,13 +11,16 @@ dotenv.config();
 const app = express();
 
 // ----------------------
-// ✅ CORS Configuration (Render-safe)
+// ✅ Allowed Origins
 // ----------------------
 const allowedOrigins = [
   'https://linklite-frontend.onrender.com', // deployed frontend
   'http://localhost:3000', // local dev
 ];
 
+// ----------------------
+// ✅ CORS Configuration (must come BEFORE routes)
+// ----------------------
 app.use((req, res, next) => {
   console.log(`🌐 Incoming request from origin: ${req.headers.origin}`);
   next();
@@ -25,13 +28,14 @@ app.use((req, res, next) => {
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true); // Allow Postman / internal requests
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like Postman or curl)
+      if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
+        callback(null, true);
       } else {
         console.error('❌ Blocked by CORS:', origin);
-        return callback(new Error('Not allowed by CORS'));
+        callback(new Error('Not allowed by CORS'));
       }
     },
     credentials: true,
@@ -40,8 +44,13 @@ app.use(
   })
 );
 
-// ✅ Preflight for all routes (important for DELETE, PATCH)
-app.options('*', cors());
+// ✅ Ensure every preflight request gets proper headers
+app.options('*', cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 // ----------------------
 // ✅ Middleware
@@ -55,21 +64,17 @@ app.use(express.urlencoded({ extended: true }));
 // ✅ Database Connection
 // ----------------------
 const pool = require('./config/database');
-pool
-  .connect()
+pool.connect()
   .then(() => console.log('✅ Connected to PostgreSQL database'))
   .catch((err) => console.error('❌ Database connection error:', err));
 
 // ----------------------
-// ✅ Import Routes
+// ✅ Routes
 // ----------------------
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const postRoutes = require('./routes/postRoutes');
 
-// ----------------------
-// ✅ Mount Routes
-// ----------------------
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
@@ -94,12 +99,4 @@ app.use('*', (req, res) => {
 app.use((err, req, res, next) => {
   console.error('🔥 Server error:', err.stack || err.message);
   res.status(500).json({ error: err.message || 'Internal server error' });
-});
-
-// ----------------------
-// 🚀 Start Server
-// ----------------------
-const PORT = process.env.PORT || 10000; // Render sets PORT automatically
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+})
