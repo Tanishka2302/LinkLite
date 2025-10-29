@@ -11,20 +11,6 @@ dotenv.config();
 const app = express();
 
 // ----------------------
-// ✅ Global Header Fallback (guarantees CORS always works)
-// ----------------------
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://linklite-frontend.onrender.com');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
-
-// ----------------------
 // ✅ CORS Configuration (Render-safe)
 // ----------------------
 const allowedOrigins = [
@@ -40,7 +26,7 @@ app.use((req, res, next) => {
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true); // Allow Postman / internal
+      if (!origin) return callback(null, true); // Allow Postman / internal requests
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       } else {
@@ -51,11 +37,10 @@ app.use(
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    optionsSuccessStatus: 200,
   })
 );
 
-// 🧩 Handle preflight requests
+// ✅ Preflight for all routes (important for DELETE, PATCH)
 app.options('*', cors());
 
 // ----------------------
@@ -114,7 +99,7 @@ app.use((err, req, res, next) => {
 // ----------------------
 // 🚀 Start Server
 // ----------------------
-const PORT = process.env.PORT || 10000; // Render provides PORT dynamically
+const PORT = process.env.PORT || 10000; // Render sets PORT automatically
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
