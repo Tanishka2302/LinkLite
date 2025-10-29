@@ -14,7 +14,8 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://linklite-odit.onr
 
 // ✅ Create Axios instance
 const api = axios.create({
-  baseURL: `${API_BASE_URL}/api`,
+  baseURL: API_BASE_URL,
+
   withCredentials: true, // helps with CORS + cookies/tokens if needed
   headers: {
     'Content-Type': 'application/json',
