@@ -10,7 +10,7 @@ const getAllPosts = async (req, res) => {
         p.id, p.content, p.created_at, p.updated_at,
         u.id AS author_id, 
         u.name AS author_name,
-        u.avatar AS author_avatar, -- ✅ FIX: Added avatar to the query
+        u.avatar AS author_avatar,
         (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id)::int AS likes_count,
         EXISTS(SELECT 1 FROM post_likes WHERE post_id = p.id AND user_id = $1) AS has_liked
       FROM posts p
@@ -38,7 +38,6 @@ const createPost = async (req, res) => {
       [content.trim(), userId]
     );
     
-    // Construct a full post object that matches the shape of getAllPosts
     const newPost = {
       ...result.rows[0],
       author_id: userId,
@@ -64,7 +63,7 @@ const getUserPosts = async (req, res) => {
         p.id, p.content, p.created_at, p.updated_at,
         u.id AS author_id, 
         u.name AS author_name,
-        u.avatar AS author_avatar, -- ✅ FIX: Added avatar to the query
+        u.avatar AS author_avatar,
         (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id)::int AS likes_count,
         EXISTS(SELECT 1 FROM post_likes WHERE post_id = p.id AND user_id = $2) AS has_liked
       FROM posts p
@@ -79,14 +78,15 @@ const getUserPosts = async (req, res) => {
   }
 };
 
-// --- LIKES, COMMENTS, DELETE (These are all correct) ---
-const toggleLikePost = async (req, res) => { /* ...your correct code... */ };
-const createCommentOnPost = async (req, res) => { /* ...your correct code... */ };
-const getCommentsForPost = async (req, res) => { /* ...your correct code... */ };
-const deletePost = async (req, res) => { /* ...your correct code... */ };
+// --- LIKES, COMMENTS, DELETE ---
+// (assuming you have these defined elsewhere)
+const toggleLikePost = async (req, res) => { /* ... */ };
+const createCommentOnPost = async (req, res) => { /* ... */ };
+const getCommentsForPost = async (req, res) => { /* ... */ };
+const deletePost = async (req, res) => { /* ... */ };
 
 
-// --- EDIT ---
+// --- EDIT POST ---
 const updatePost = async (req, res) => {
   try {
     const { id: postId } = req.params;
@@ -97,19 +97,23 @@ const updatePost = async (req, res) => {
       return res.status(400).json({ error: 'Post content cannot be empty' });
     }
 
+    // ✅ FIXED: changed 44 → 404 (correct HTTP status)
     const postResult = await pool.query('SELECT author_id FROM posts WHERE id = $1', [postId]);
     if (postResult.rows.length === 0) {
-      return res.status(44).json({ error: 'Post not found' });
+      return res.status(404).json({ error: 'Post not found' });
     }
+
     if (postResult.rows[0].author_id !== userId) {
       return res.status(403).json({ error: 'Forbidden: You can only edit your own posts' });
     }
 
-    // Update the post
-    await pool.query('UPDATE posts SET content = $1 WHERE id = $2', [content.trim(), postId]);
+    // ✅ FIXED: include updated_at for clarity
+    await pool.query(
+      'UPDATE posts SET content = $1, updated_at = NOW() WHERE id = $2',
+      [content.trim(), postId]
+    );
       
-    // ✅ IMPROVEMENT: Fetch the fully updated post data to send back to the frontend
-    // This ensures the response has the same shape as posts from getAllPosts
+    // ✅ Fetch updated post in the same consistent format
     const finalResult = await pool.query(`
       SELECT 
         p.id, p.content, p.created_at, p.updated_at,
