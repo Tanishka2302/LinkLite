@@ -4,8 +4,12 @@ import { getToken, removeToken } from './services/authService';
 
 // ✅ FIX 1: Environment variable should match your .env key name
 // Use REACT_APP_API_BASE_URL (React automatically exposes variables starting with REACT_APP_)
-const API_BASE_URL =
+/*const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || 'https://linklite-odit.onrender.com';
+// frontend/src/api.js*/
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL ||
+  'https://linklite-backend.onrender.com/api';
 
 // ✅ Create Axios instance
 const api = axios.create({
