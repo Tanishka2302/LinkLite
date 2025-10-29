@@ -7,9 +7,10 @@ import { getToken, removeToken } from './services/authService';
 /*const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || 'https://linklite-odit.onrender.com';
 // frontend/src/api.js*/
-const API_BASE_URL =
-  process.env.REACT_APP_API_URL ||
-  'https://linklite-backend.onrender.com/api';
+
+//const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://linklite-odit.onrender.com';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://linklite-odit.onrender.com';
+
 
 // ✅ Create Axios instance
 const api = axios.create({
