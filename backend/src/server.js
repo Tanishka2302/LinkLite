@@ -114,7 +114,7 @@ app.use((err, req, res, next) => {
 // ----------------------
 // 🚀 Start Server
 // ----------------------
-const PORT = process.env.PORT || 10000; // Render assigns this dynamically
+const PORT = process.env.PORT || 10000; // Render provides PORT dynamically
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
