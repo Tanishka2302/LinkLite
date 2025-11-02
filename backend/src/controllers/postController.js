@@ -39,7 +39,8 @@ const createPost = async (req, res) => {
       return res.status(400).json({ error: 'Post must have text or media' });
     }
 
-    const mediaPath = req.file ? req.file.path.replace(/\\/g, '/') : null;
+    const mediaPath = req.file ? `${process.env.BACKEND_URL}/${req.file.path.replace(/\\/g, '/')}` : null;
+
 
     const result = await pool.query(
       'INSERT INTO posts (content, author_id, media_url) VALUES ($1, $2, $3) RETURNING *',
