@@ -6,6 +6,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
+const path = require('path');
+const fs = require('fs');
 
 dotenv.config();
 const app = express();
@@ -62,8 +64,16 @@ app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/uploads', express.static('uploads'));
 
+// ----------------------
+// ✅ Uploads folder setup (auto-create if missing)
+// ----------------------
+const uploadPath = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadPath)) {
+  fs.mkdirSync(uploadPath);
+  console.log('🗂️  Created uploads folder automatically');
+}
+app.use('/uploads', express.static(uploadPath));
 
 // ----------------------
 // ✅ Database Connection
@@ -110,7 +120,7 @@ app.use((err, req, res, next) => {
 // ----------------------
 // 🚀 Start Server
 // ----------------------
-const PORT = process.env.PORT || 10000; // Render uses its own port
+const PORT = process.env.PORT || 10000; // Render sets its own PORT
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
