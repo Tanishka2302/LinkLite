@@ -2,8 +2,7 @@ const pool = require('../config/database');
 const path = require('path');
 const fs = require('fs');
 
-// --- POSTS ---
-
+// --- GET ALL POSTS ---
 const getAllPosts = async (req, res) => {
   try {
     const userId = req.user ? req.user.id : null;
@@ -28,7 +27,7 @@ const getAllPosts = async (req, res) => {
   }
 };
 
-// ✅ Create post with full backend URL for media
+// --- CREATE POST ---
 const createPost = async (req, res) => {
   try {
     const { content } = req.body;
@@ -38,8 +37,9 @@ const createPost = async (req, res) => {
       return res.status(400).json({ error: 'Post must have text or media' });
     }
 
+    // ✅ Always produce a clean full backend URL
     const mediaPath = req.file
-      ? `${process.env.BACKEND_URL}/${req.file.path.replace(/\\/g, '/')}`
+      ? `${process.env.BACKEND_URL}/uploads/${path.basename(req.file.path)}`
       : null;
 
     const result = await pool.query(
@@ -63,6 +63,7 @@ const createPost = async (req, res) => {
   }
 };
 
+// --- GET POSTS BY USER ---
 const getUserPosts = async (req, res) => {
   try {
     const { id: authorId } = req.params;
@@ -89,13 +90,13 @@ const getUserPosts = async (req, res) => {
   }
 };
 
-// --- Placeholders ---
-const toggleLikePost = async (req, res) => { /* ... */ };
-const createCommentOnPost = async (req, res) => { /* ... */ };
-const getCommentsForPost = async (req, res) => { /* ... */ };
-const deletePost = async (req, res) => { /* ... */ };
+// --- PLACEHOLDER METHODS ---
+const toggleLikePost = async (req, res) => { /* TODO */ };
+const createCommentOnPost = async (req, res) => { /* TODO */ };
+const getCommentsForPost = async (req, res) => { /* TODO */ };
+const deletePost = async (req, res) => { /* TODO */ };
 
-// ✅ Update post with correct media handling
+// --- UPDATE POST ---
 const updatePost = async (req, res) => {
   try {
     const { id: postId } = req.params;
@@ -112,16 +113,18 @@ const updatePost = async (req, res) => {
       return res.status(403).json({ error: 'Forbidden: You can only edit your own posts' });
     }
 
-    // Build new media URL if a file was uploaded
+    // ✅ Correctly build new media URL
     const newMediaUrl = req.file
-      ? `${process.env.BACKEND_URL}/${req.file.path.replace(/\\/g, '/')}`
+      ? `${process.env.BACKEND_URL}/uploads/${path.basename(req.file.path)}`
       : post.media_url;
 
-    // Optional: delete old media file (if it exists on server)
+    // ✅ Delete old file if a new one is uploaded
     if (req.file && post.media_url) {
-      const oldFilePath = path.join(__dirname, '..', post.media_url.replace(`${process.env.BACKEND_URL}/`, ''));
-      if (fs.existsSync(oldFilePath)) {
-        fs.unlinkSync(oldFilePath);
+      try {
+        const oldFilePath = path.join(__dirname, '..', 'uploads', path.basename(post.media_url));
+        if (fs.existsSync(oldFilePath)) fs.unlinkSync(oldFilePath);
+      } catch (err) {
+        console.warn('⚠️ Failed to delete old media file:', err.message);
       }
     }
 
