@@ -1,41 +1,38 @@
-// src/components/posts/PostCard.js
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { postService } from '../../../services/postService';
-import { useAuth } from '../../../context/AuthContext'; // ✅ ADDED: Import useAuth to check for the current user
-import { FaHeart, FaEdit, FaTrash } from 'react-icons/fa'; // ✅ ADDED: Edit and Delete icons
+import { useAuth } from '../../../context/AuthContext';
+import { FaHeart, FaEdit, FaTrash } from 'react-icons/fa';
 import CommentCard from './CommentCard';
 
-
-// ✅ UPDATED: Accept new props for delete and update events from the parent
 const PostCard = ({ post, onPostDeleted, onPostUpdated }) => {
-  const { user } = useAuth(); // Get the currently logged-in user
+  const { user } = useAuth();
 
-  // State for likes and comments
   const [isLiked, setIsLiked] = useState(post.has_liked);
   const [likeCount, setLikeCount] = useState(parseInt(post.likes_count, 10));
   const [comments, setComments] = useState([]);
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
-
-  // ✅ ADDED: State for editing mode
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(post.content);
 
+  // --- HANDLERS ---
 
-  // --- HANDLER FUNCTIONS ---
+  const handleLike = async () => {
+    try {
+      const response = await postService.toggleLike(post.id);
+      setIsLiked(response.has_liked);
+      setLikeCount(response.likes_count);
+    } catch (error) {
+      console.error('Error liking post:', error);
+    }
+  };
 
-  const handleLike = async () => { /* ... existing like logic ... */ };
-  const handleFetchComments = async () => { /* ... existing fetch comments logic ... */ };
-  const handleCommentSubmit = async (e) => { /* ... existing comment submit logic ... */ };
-
-  // ✅ ADDED: Handler for deleting a post
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this post?')) {
       try {
         await postService.deletePost(post.id);
-        onPostDeleted(post.id); // Notify the parent component to remove the post
+        onPostDeleted(post.id);
       } catch (error) {
         console.error('Failed to delete post:', error);
         alert('Failed to delete post.');
@@ -43,54 +40,97 @@ const PostCard = ({ post, onPostDeleted, onPostUpdated }) => {
     }
   };
 
-  // ✅ ADDED: Handler for saving an edited post
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
     try {
       const response = await postService.updatePost(post.id, editedContent);
-      onPostUpdated(response.post); // Notify the parent component of the update
-      setIsEditing(false); // Exit editing mode
+      onPostUpdated(response.post);
+      setIsEditing(false);
     } catch (error) {
       console.error('Failed to update post:', error);
       alert('Failed to update post.');
     }
   };
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleString();
+  };
 
-  const formatDate = (dateString) => { /* ... existing date format logic ... */ };
-  const avatarUrl = post.author_avatar || `https://...`; // your existing avatar logic
+  const avatarUrl =
+    post.author_avatar ||
+    'https://ui-avatars.com/api/?name=' + encodeURIComponent(post.author_name);
+
+  // --- RENDER ---
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+      {/* Header: Avatar + Name + Date */}
       <div className="flex items-start space-x-3 mb-4">
         <Link to={`/profile/${post.author_id}`}>
-          <img src={avatarUrl} alt={post.author_name} className="w-10 h-10 rounded-full" />
+          <img
+            src={avatarUrl}
+            alt={post.author_name}
+            className="w-10 h-10 rounded-full"
+          />
         </Link>
         <div>
-          <Link to={`/profile/${post.author_id}`} className="font-semibold hover:underline">
+          <Link
+            to={`/profile/${post.author_id}`}
+            className="font-semibold hover:underline"
+          >
             {post.author_name}
           </Link>
           <p className="text-sm text-gray-500">{formatDate(post.created_at)}</p>
         </div>
-        
-        {/* ✅ ADDED: JSX for the Edit/Delete buttons (conditionally rendered) */}
-        <div className="ml-auto">
-          {user && user.id === post.author_id && (
-            <div className="flex space-x-4">
-              <button onClick={() => setIsEditing(!isEditing)} className="text-gray-500 hover:text-blue-600">
-                <FaEdit />
-              </button>
-              <button onClick={handleDelete} className="text-gray-500 hover:text-red-600">
-                <FaTrash />
-              </button>
-            </div>
-          )}
-        </div>
+
+        {/* Edit/Delete (if author) */}
+        {user && user.id === post.author_id && (
+          <div className="ml-auto flex space-x-4">
+            <button
+              onClick={() => setIsEditing(!isEditing)}
+              className="text-gray-500 hover:text-blue-600"
+            >
+              <FaEdit />
+            </button>
+            <button
+              onClick={handleDelete}
+              className="text-gray-500 hover:text-red-600"
+            >
+              <FaTrash />
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* ✅ UPDATED: Post content is now a conditional block for editing */}
+      {/* Editable content */}
       {!isEditing ? (
-        <p className="text-gray-700 mb-4 whitespace-pre-wrap">{post.content}</p>
+        <>
+          <p className="text-gray-700 mb-4 whitespace-pre-wrap">
+            {post.content}
+          </p>
+
+          {/* ✅ SHOW IMAGE OR VIDEO IF AVAILABLE */}
+          {post.media_url && (
+            <div className="mb-4">
+              {post.media_url.endsWith('.mp4') ||
+              post.media_url.endsWith('.mov') ||
+              post.media_url.endsWith('.webm') ? (
+                <video
+                  src={post.media_url}
+                  controls
+                  className="w-full rounded-lg border"
+                />
+              ) : (
+                <img
+                  src={post.media_url}
+                  alt="Post media"
+                  className="w-full rounded-lg border"
+                />
+              )}
+            </div>
+          )}
+        </>
       ) : (
         <form onSubmit={handleUpdateSubmit}>
           <textarea
@@ -100,17 +140,52 @@ const PostCard = ({ post, onPostDeleted, onPostUpdated }) => {
             rows="3"
           />
           <div className="flex justify-end space-x-2 mt-2">
-            <button type="button" onClick={() => setIsEditing(false)} className="px-3 py-1 text-sm rounded-md">
+            <button
+              type="button"
+              onClick={() => setIsEditing(false)}
+              className="px-3 py-1 text-sm rounded-md"
+            >
               Cancel
             </button>
-            <button type="submit" className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md">
+            <button
+              type="submit"
+              className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md"
+            >
               Save
             </button>
           </div>
         </form>
       )}
 
-      {/* ... (keep your like/comment buttons and comment section JSX) ... */}
+      {/* Like + Comment buttons (same as before) */}
+      <div className="flex items-center space-x-4 mt-4">
+        <button
+          onClick={handleLike}
+          className={`flex items-center space-x-1 ${
+            isLiked ? 'text-red-600' : 'text-gray-500'
+          }`}
+        >
+          <FaHeart />
+          <span>{likeCount}</span>
+        </button>
+        <button
+          onClick={() => setShowComments(!showComments)}
+          className="text-gray-500"
+        >
+          💬 Comments
+        </button>
+      </div>
+
+      {/* Comments section */}
+      {showComments && (
+        <div className="mt-4">
+          {comments.length === 0 ? (
+            <p className="text-sm text-gray-500">No comments yet.</p>
+          ) : (
+            comments.map((c) => <CommentCard key={c.id} comment={c} />)
+          )}
+        </div>
+      )}
     </div>
   );
 };

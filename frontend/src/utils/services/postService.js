@@ -8,9 +8,11 @@ export const postService = {
     return response.data;
   },
 
-  // 🟢 Create a new post
-  async createPost(content) {
-    const response = await api.post('/posts', { content });
+  // 🟢 Create a new post (supports text + image/video)
+  async createPost(formData) {
+    const response = await api.post('/posts', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data;
   },
 
@@ -44,12 +46,9 @@ export const postService = {
     return response.data;
   },
 
-  // 🆕 🟢 Update a post (FIX for your current error)
-
-  // ✅ FIXED updatePost
-async updatePost(postId, content) {
-  const response = await api.put(`/posts/${postId}`, { content }); // <-- must be an object
-  return response.data;
-}
-
+  // 🟢 Update a post (text only)
+  async updatePost(postId, content) {
+    const response = await api.put(`/posts/${postId}`, { content });
+    return response.data;
+  },
 };
