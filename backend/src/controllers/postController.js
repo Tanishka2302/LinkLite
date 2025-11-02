@@ -28,8 +28,7 @@ const getAllPosts = async (req, res) => {
   }
 };
 
-
-// ✅ UPDATED: createPost — now supports optional image/video upload
+// ✅ Create post with full backend URL for media
 const createPost = async (req, res) => {
   try {
     const { content } = req.body;
@@ -39,8 +38,9 @@ const createPost = async (req, res) => {
       return res.status(400).json({ error: 'Post must have text or media' });
     }
 
-    const mediaPath = req.file ? `${process.env.BACKEND_URL}/${req.file.path.replace(/\\/g, '/')}` : null;
-
+    const mediaPath = req.file
+      ? `${process.env.BACKEND_URL}/${req.file.path.replace(/\\/g, '/')}`
+      : null;
 
     const result = await pool.query(
       'INSERT INTO posts (content, author_id, media_url) VALUES ($1, $2, $3) RETURNING *',
@@ -62,7 +62,6 @@ const createPost = async (req, res) => {
     res.status(500).json({ error: 'Server error while creating post' });
   }
 };
-
 
 const getUserPosts = async (req, res) => {
   try {
@@ -90,21 +89,18 @@ const getUserPosts = async (req, res) => {
   }
 };
 
-
-// --- LIKES, COMMENTS, DELETE (unchanged placeholders) ---
+// --- Placeholders ---
 const toggleLikePost = async (req, res) => { /* ... */ };
 const createCommentOnPost = async (req, res) => { /* ... */ };
 const getCommentsForPost = async (req, res) => { /* ... */ };
 const deletePost = async (req, res) => { /* ... */ };
 
-
-// ✅ UPDATED: updatePost — now supports changing text & media
+// ✅ Update post with correct media handling
 const updatePost = async (req, res) => {
   try {
     const { id: postId } = req.params;
     const { id: userId } = req.user;
     const { content } = req.body;
-    const newMediaPath = req.file ? req.file.path.replace(/\\/g, '/') : null;
 
     const postResult = await pool.query('SELECT * FROM posts WHERE id = $1', [postId]);
     if (postResult.rows.length === 0) {
@@ -116,17 +112,24 @@ const updatePost = async (req, res) => {
       return res.status(403).json({ error: 'Forbidden: You can only edit your own posts' });
     }
 
-    // If a new file was uploaded, delete the old one (optional)
-    if (newMediaPath && post.media_url && fs.existsSync(post.media_url)) {
-      fs.unlinkSync(post.media_url);
+    // Build new media URL if a file was uploaded
+    const newMediaUrl = req.file
+      ? `${process.env.BACKEND_URL}/${req.file.path.replace(/\\/g, '/')}`
+      : post.media_url;
+
+    // Optional: delete old media file (if it exists on server)
+    if (req.file && post.media_url) {
+      const oldFilePath = path.join(__dirname, '..', post.media_url.replace(`${process.env.BACKEND_URL}/`, ''));
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+      }
     }
 
     const updatedContent = content ? content.trim() : post.content;
-    const updatedMedia = newMediaPath || post.media_url;
 
     await pool.query(
       'UPDATE posts SET content = $1, media_url = $2, updated_at = NOW() WHERE id = $3',
-      [updatedContent, updatedMedia, postId]
+      [updatedContent, newMediaUrl, postId]
     );
 
     const finalResult = await pool.query(`
@@ -146,7 +149,6 @@ const updatePost = async (req, res) => {
     res.status(500).json({ error: 'Server error while updating post' });
   }
 };
-
 
 module.exports = {
   getAllPosts,
