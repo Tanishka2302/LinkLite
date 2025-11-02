@@ -114,10 +114,10 @@ const updatePost = async (req, res) => {
     }
 
     // ✅ Correctly build new media URL
-    const newMediaUrl = req.file
-      ? `${process.env.BACKEND_URL}/uploads/${path.basename(req.file.path)}`
-      : post.media_url;
-
+    const mediaPath = req.file
+    ? `${process.env.BACKEND_URL}/uploads/${req.file.filename}`
+    : null;
+  
     // ✅ Delete old file if a new one is uploaded
     if (req.file && post.media_url) {
       try {
