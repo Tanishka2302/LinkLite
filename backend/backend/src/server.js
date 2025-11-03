@@ -10,7 +10,6 @@ const path = require('path');
 const fs = require('fs');
 const uploadRoutes = require('./routes/uploadRoutes');
 
-
 dotenv.config();
 const app = express();
 
@@ -23,19 +22,24 @@ const allowedOrigins = [
 ];
 
 // ----------------------
-// ✅ CORS Configuration (must come BEFORE routes)
+// ✅ Log incoming origin (for debugging)
 // ----------------------
 app.use((req, res, next) => {
   console.log(`🌐 Incoming request from origin: ${req.headers.origin}`);
   next();
 });
 
+// ----------------------
+// ✅ Improved CORS Configuration (before all routes)
+// ----------------------
 app.use(
   cors({
     origin: function (origin, callback) {
       // Allow requests with no origin (like Postman or curl)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
+
+      // ✅ Use startsWith for flexibility (avoids trailing-slash issues)
+      if (allowedOrigins.some((o) => origin && origin.startsWith(o))) {
         callback(null, true);
       } else {
         console.error('❌ Blocked by CORS:', origin);
@@ -47,18 +51,14 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
-app.use('/api/upload', uploadRoutes);
 
-// ✅ Ensure every preflight request gets proper headers
-app.options(
-  '*',
-  cors({
-    origin: allowedOrigins,
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-);
+// ✅ Ensure preflight requests get proper headers
+app.options('*', cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 // ----------------------
 // ✅ Middleware
@@ -67,17 +67,25 @@ app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ----------------------
-// ✅ Uploads folder setup (auto-create if missing)
+// ✅ Uploads Folder Setup
 // ----------------------
 const uploadPath = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadPath)) {
   fs.mkdirSync(uploadPath);
   console.log('🗂️  Created uploads folder automatically');
 }
-app.use('/uploads', express.static(uploadPath));
+
+// ✅ Serve uploads WITH CORS enabled
+app.use(
+  '/uploads',
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  }),
+  express.static(uploadPath)
+);
 
 // ----------------------
 // ✅ Database Connection
@@ -98,6 +106,7 @@ const postRoutes = require('./routes/postRoutes');
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // ----------------------
 // ✅ Root Route
