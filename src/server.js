@@ -11,7 +11,13 @@ const fs = require('fs');
 const uploadRoutes = require('./routes/uploadRoutes');
 
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+console.log("🌤️ ENV CHECK:", {
+  CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
+  API_KEY: !!process.env.CLOUDINARY_API_KEY,
+  API_SECRET: !!process.env.CLOUDINARY_API_SECRET,
+});
+
 const app = express();
 
 // ----------------------
