@@ -38,10 +38,9 @@ const createPost = async (req, res) => {
     }
 
     // ✅ Always produce a clean full backend URL
-    media_url: req.file ? req.file.path : null,
+   const mediaPath = req.file ? req.file.path : null;
 
-
-    const result = await pool.query(
+const result = await pool.query(
       'INSERT INTO posts (content, author_id, media_url) VALUES ($1, $2, $3) RETURNING *',
       [content ? content.trim() : '', userId, mediaPath]
     );
